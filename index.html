@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GPS Location</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>GPS Location</h1>
+    <p>Coding Sederhana untuk kuliah Prodi SIKC Politeknik Negeri Banjarmasin<br>
+    By Dosen Agus SBN</p>
+    <p id="location"></p>
+    <p id="address"></p>
+    <div id="map"></div>
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var locationPara = document.getElementById("location");
+        var addressPara = document.getElementById("address");
+        var map = L.map('map').setView([0, 0], 13); // Inisialisasi peta dengan zoom level 13
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); // Menambahkan layer OpenStreetMap ke peta
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else { 
+                locationPara.innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+
+            locationPara.innerHTML = "Latitude: " + latitude + "<br>Longitude: " + longitude;
+
+            var apiUrl = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + latitude + "&lon=" + longitude;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        addressPara.innerHTML = "Address: " + data.display_name;
+                    } else {
+                        addressPara.innerHTML = "Address not found";
+                    }
+                })
+                .catch(error => {
+                    addressPara.innerHTML = "Error fetching address: " + error;
+                });
+
+            // Menambahkan marker ke posisi saat ini di peta
+            var marker = L.marker([latitude, longitude]).addTo(map);
+
+            // Menyesuaikan tampilan peta dengan posisi saat ini
+            map.setView([latitude, longitude], 13);
+
+            // Menambahkan minimap di sudut kanan bawah peta
+            var miniMap = new L.Control.MiniMap(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'), { toggleDisplay: true }).addTo(map);
+        }
+
+        getLocation();
+    </script>
+</body>
+</html>
